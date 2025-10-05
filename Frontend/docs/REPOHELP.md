@@ -6,29 +6,71 @@ The RepoHelp feature is a comprehensive GitHub repository analysis tool that hel
 
 ## Features
 
-### 🔍 Repository Analysis
+### 🔍 Advanced Repository Analysis
 - **Repository Information**: Stars, forks, language, license, topics
-- **Issue Analysis**: Open issues count, good first issues identification  
+- **Smart Issue Analysis**: AI-powered issue categorization and filtering
 - **File Structure**: Project organization and key files detection
 - **Technical Stack**: Package manager, framework, and dependencies detection
 
-### 🎯 Contribution Guidance
-- **Personalized Workflow**: Step-by-step contribution instructions
-- **Technical Setup**: Framework-specific setup instructions
-- **Best Practices**: Contribution checklist and guidelines
-- **Good First Issues**: Beginner-friendly issues with labels and comments
+### 🎯 Enhanced Issue Discovery
+- **Advanced Search**: Sophisticated filtering with multiple parameters
+- **Difficulty Assessment**: AI-powered Easy/Medium/Hard categorization
+- **Priority Classification**: High/Medium/Low priority assessment
+- **Label Management**: Include/exclude specific labels with visual picker
+- **Smart Sorting**: Multiple sorting options (updated, created, comments, difficulty)
+- **Real-time Filtering**: Instant results as you adjust filters
+
+### 🔧 Powerful Filtering System
+- **Text Search**: Search by issue title, description, or keywords
+- **Label Filtering**: Visual label picker with GitHub colors
+- **State Management**: Open, Closed, or All issues
+- **Difficulty Levels**: Filter by skill level requirements
+- **Priority Focus**: Target high-priority issues
+- **Active Filter Display**: See and manage all active filters
+
+### 📊 Rich Issue Information
+- **Comprehensive Cards**: Issue metadata, labels, and status
+- **Visual Indicators**: Difficulty badges with icons (⚡ Easy, 🎯 Medium, 📈 Hard)
+- **Availability Status**: Shows unassigned issues as "Available"
+- **Detailed Metadata**: Comments, dates, authors, estimated time
+- **Description Previews**: Issue content snippets
+- **Direct GitHub Links**: Quick access to full issues
 
 ### 📁 Project Understanding
 - **File Structure**: Visual representation of project organization
 - **Key Files Detection**: README, CONTRIBUTING, CODE_OF_CONDUCT status
 - **Technical Details**: Package manager, framework, special requirements
+- **Contribution Guidance**: Step-by-step personalized workflow
 
 ## How to Use
 
-1. **Enter Repository URL**: Paste any public GitHub repository URL
-2. **Analyze**: Click analyze to fetch comprehensive repository data
-3. **Explore Results**: Browse through different tabs for detailed information
-4. **Start Contributing**: Follow the personalized contribution guide
+### 🚀 Basic Analysis
+1. **Enter Repository URL**: Paste any public GitHub repository URL (e.g., `https://github.com/facebook/react`)
+2. **Click "Analyze"**: Get comprehensive repository data and good first issues
+3. **Browse Results**: Explore issues, file structure, and contribution guide
+4. **Start Contributing**: Follow the personalized workflow
+
+### 🔍 Advanced Search
+1. **Click "Show Filters"**: Reveal advanced search and filtering options
+2. **Configure Search**:
+   - **Search Query**: Enter keywords for title/description search
+   - **Issue State**: Choose Open, Closed, or All issues
+   - **Sort Options**: Updated, Created, Comments, or Difficulty
+   - **Difficulty Filter**: Easy, Medium, Hard based on your skill level
+   - **Priority Filter**: High, Medium, Low priority issues
+3. **Manage Labels**:
+   - **Include Labels**: Click `+` to include specific labels
+   - **Exclude Labels**: Click `-` to exclude unwanted labels
+   - **View Active Filters**: See all applied filters with easy removal
+4. **Click "Search"**: Get precisely filtered results
+
+### 📊 Understanding Results
+- **Issue Cards**: Rich information cards with metadata
+- **Difficulty Badges**: ⚡ Easy, 🎯 Medium, 📈 Hard indicators  
+- **Availability**: Green "Available" badge for unassigned issues
+- **Quick Stats**: Dashboard showing issue counts by difficulty
+- **Smart Labels**: Color-coded labels matching GitHub
+- **Direct Links**: One-click access to GitHub issues
 
 ## API Integration
 
@@ -46,12 +88,24 @@ GITHUB_TOKEN=your_github_token_here
 ### API Endpoints
 
 #### POST /api/analyze-repo
-Analyzes a GitHub repository and returns comprehensive data.
+Analyzes a GitHub repository with advanced search and filtering capabilities.
 
-**Request Body:**
+**Request Body (Basic Analysis):**
 ```json
 {
   "url": "https://github.com/owner/repository"
+}
+```
+
+**Request Body (Advanced Search):**
+```json
+{
+  "url": "https://github.com/owner/repository",
+  "analysisType": "search",
+  "searchQuery": "bug fix",
+  "labels": ["good first issue", "help wanted"],
+  "excludeLabels": ["wontfix"],
+  "issueState": "open"
 }
 ```
 
@@ -60,12 +114,41 @@ Analyzes a GitHub repository and returns comprehensive data.
 {
   "success": true,
   "data": {
-    "repo": { /* Repository metadata */ },
-    "issues": [ /* All open issues */ ],
-    "goodFirstIssues": [ /* Beginner-friendly issues */ ],
+    "repo": { 
+      "name": "repository-name",
+      "description": "Repository description",
+      "stars": 1500,
+      "forks": 300,
+      "language": "JavaScript",
+      "license": "MIT"
+    },
+    "issues": [
+      {
+        "title": "Issue title",
+        "number": 123,
+        "labels": ["bug", "good first issue"],
+        "difficulty": "easy",
+        "priority": "medium",
+        "comments": 5,
+        "user": { "login": "username" },
+        "assignees": [],
+        "body": "Issue description...",
+        "html_url": "https://github.com/...",
+        "updated_at": "2025-10-05T10:30:00Z"
+      }
+    ],
+    "goodFirstIssues": [ /* Enhanced issue objects */ ],
+    "availableLabels": [
+      {
+        "name": "bug",
+        "color": "d73a49",
+        "description": "Something isn't working"
+      }
+    ],
     "fileStructure": [ /* Project files and folders */ ],
     "contributionGuide": [ /* Step-by-step instructions */ ],
-    "technicalDetails": { /* Tech stack information */ }
+    "technicalDetails": { /* Tech stack information */ },
+    "hasAdvancedSearch": true
   }
 }
 ```
@@ -74,21 +157,46 @@ Analyzes a GitHub repository and returns comprehensive data.
 
 ### Core Components
 
-1. **GitHubService** (`lib/github-api.ts`)
-   - Repository data fetching
-   - Issue analysis and filtering
+1. **Enhanced GitHubService** (`lib/github-api.ts`)
+   - Advanced repository data fetching
+   - Sophisticated issue search with multiple parameters
+   - Smart difficulty and priority assessment
+   - Label discovery and management
    - File structure exploration
    - Technical stack detection
 
-2. **API Route** (`app/api/analyze-repo/route.ts`)
-   - Request handling and validation
-   - Error management
-   - Response formatting
+2. **Advanced API Route** (`app/api/analyze-repo/route.ts`)
+   - Multi-type analysis support (full, search, labels)
+   - Advanced parameter handling
+   - Comprehensive error management
+   - Enhanced response formatting
 
-3. **RepoHelp Page** (`app/repo-help/page.tsx`)
-   - User interface
-   - Real-time analysis
-   - Results visualization
+3. **Redesigned RepoHelp Page** (`app/repo-help/page.tsx`)
+   - Advanced filtering user interface
+   - Real-time search and filtering
+   - Rich issue visualization
+   - Complex state management
+   - Responsive design with Tailwind CSS
+
+### New Technical Features
+
+#### **Advanced Issue Search**
+- **Multi-parameter Filtering**: Combine text search, labels, state, difficulty, priority
+- **Real-time Results**: Instant filtering without API calls
+- **Smart Categorization**: AI-powered difficulty and priority assessment
+- **Label Management**: Visual label picker with GitHub API integration
+
+#### **Enhanced Data Processing**
+- **Issue Enrichment**: Automatic difficulty and priority estimation
+- **Label Discovery**: Fetch all repository labels with colors and descriptions
+- **Smart Sorting**: Multiple sorting algorithms for different use cases
+- **Error Resilience**: Robust null checking and fallback values
+
+#### **Performance Optimizations**
+- **Client-side Filtering**: Reduce API calls with local filtering
+- **Efficient State Management**: React hooks for optimal performance
+- **Smart Caching**: Intelligent data caching strategies
+- **Responsive Loading**: Progressive data loading with loading states
 
 ### Data Processing
 

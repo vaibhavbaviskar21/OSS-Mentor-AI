@@ -35,74 +35,110 @@ export function Navigation() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 glass-morphism">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center font-mono font-bold text-primary-foreground transition-smooth group-hover:scale-110">
-              OSS
+          {/* Enhanced Logo */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center font-mono font-bold text-primary-foreground transition-bounce group-hover:scale-110 group-hover:rotate-3 neon-glow">
+              <span className="text-sm">OSS</span>
             </div>
-            <span className="font-bold text-lg hidden sm:inline-block">OSS Mentor AI</span>
+            <div className="hidden sm:block">
+              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                OSS Mentor AI
+              </span>
+              <div className="text-xs text-muted-foreground -mt-1">Your Open Source Journey</div>
+            </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Enhanced Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2 bg-muted/30 rounded-full p-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-4 py-2 rounded-md text-sm font-medium transition-smooth relative",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  "px-4 py-2 rounded-full text-sm font-medium transition-bounce relative group",
+                  pathname === item.href 
+                    ? "bg-primary text-primary-foreground shadow-lg" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 )}
               >
                 {item.name}
                 {pathname === item.href && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary neon-glow" />
+                  <div className="absolute inset-0 rounded-full bg-primary neon-glow opacity-50" />
                 )}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-smooth" />
               </Link>
             ))}
           </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="transition-smooth hover:scale-110">
-              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {/* Enhanced Right side actions */}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleTheme} 
+              className="transition-bounce hover:scale-110 hover:bg-primary/10 rounded-full"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-amber-500" />
+              ) : (
+                <Moon className="h-5 w-5 text-blue-500" />
+              )}
             </Button>
 
-            <Button className="hidden sm:inline-flex neon-glow">Get Started</Button>
+            <Button className="hidden sm:inline-flex neon-glow btn-gradient px-6 hover:scale-105 transition-bounce">
+              Get Started
+            </Button>
 
-            {/* Mobile menu button */}
+            {/* Enhanced Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden transition-bounce hover:scale-110 rounded-full"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5 rotate-90 transition-all duration-300" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Enhanced Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
+          <div className="md:hidden py-6 border-t border-border/50 glass-morphism">
+            <div className="flex flex-col gap-3">
+              {navItems.map((item, index) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "px-4 py-2 rounded-md text-sm font-medium transition-smooth",
-                    pathname === item.href ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted",
+                    "px-4 py-3 rounded-xl text-sm font-medium transition-bounce relative group",
+                    pathname === item.href 
+                      ? "bg-gradient-to-r from-primary/20 to-accent/20 text-primary border border-primary/30" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {item.name}
+                  <div className="flex items-center justify-between">
+                    {item.name}
+                    {pathname === item.href && (
+                      <div className="w-2 h-2 rounded-full bg-primary neon-glow" />
+                    )}
+                  </div>
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-accent/0 opacity-0 group-hover:opacity-100 transition-smooth" />
                 </Link>
               ))}
-              <Button className="mt-2 neon-glow">Get Started</Button>
+              <div className="pt-4 border-t border-border/50">
+                <Button className="w-full neon-glow btn-gradient">
+                  Get Started
+                </Button>
+              </div>
             </div>
           </div>
         )}
