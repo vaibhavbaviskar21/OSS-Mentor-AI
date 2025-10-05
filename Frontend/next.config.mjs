@@ -24,9 +24,6 @@ const nextConfig = {
   // Enable strict mode
   reactStrictMode: true,
   
-  // Optimize for performance
-  swcMinify: true,
-  
   // Handle trailing slashes
   trailingSlash: false,
   
