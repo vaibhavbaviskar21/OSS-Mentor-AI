@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Output configuration for Netlify
-  output: 'standalone',
-  
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
@@ -11,7 +8,7 @@ const nextConfig = {
     domains: ['localhost', 'avatars.githubusercontent.com', 'github.com'],
     formats: ['image/webp', 'image/avif'],
     // Netlify doesn't support Next.js Image Optimization by default
-    unoptimized: process.env.NODE_ENV === 'production',
+    unoptimized: true,
   },
   
   compiler: {

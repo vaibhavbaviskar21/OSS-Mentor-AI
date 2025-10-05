@@ -1,11 +1,9 @@
 [build]
-  publish = ".next"
   command = "npm run build"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Essential Next.js plugin for Netlify - this handles everything automatically
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -21,13 +19,6 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
-
 # Cache static assets
 [[headers]]
   for = "/_next/static/*"
@@ -35,12 +26,6 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "/images/*"
+  for = "/public/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000"
-
-# Handle API routes
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
