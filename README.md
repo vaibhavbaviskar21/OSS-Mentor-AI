@@ -1,4 +1,4 @@
-# 🚀 OpenMentor AI - Your Open Source Contribution Companion
+# 🚀 OSS Mentor AI - Your Open Source Contribution Companion
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://reactjs.org/)
