@@ -41,9 +41,9 @@ export function Navigation() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center font-mono font-bold text-primary-foreground transition-smooth group-hover:scale-110">
-              OS
+              OSS
             </div>
-            <span className="font-bold text-lg hidden sm:inline-block">OpenSource Hub</span>
+            <span className="font-bold text-lg hidden sm:inline-block">OSS Mentor AI</span>
           </Link>
 
           {/* Desktop Navigation */}

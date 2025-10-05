@@ -12,12 +12,12 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center font-mono font-bold text-primary-foreground">
-                OS
+                OSS
               </div>
-              <span className="font-bold">OpenSource Hub</span>
+              <span className="font-bold">OSS Mentor AI</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Empowering developers to contribute to open source projects seamlessly.
+              AI-powered guidance for open source contribution and mentorship.
             </p>
           </div>
 
@@ -80,7 +80,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">© 2025 OpenSource Hub. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 OSS Mentor AI. All rights reserved.</p>
 
           <div className="flex items-center gap-4">
             <Link href="https://github.com" className="text-muted-foreground hover:text-primary transition-smooth">
