@@ -4,7 +4,14 @@ import { GitHubService } from '@/lib/github-api';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { url } = body;
+    const { 
+      url, 
+      searchQuery, 
+      labels = [], 
+      excludeLabels = [], 
+      issueState = 'open',
+      analysisType = 'full' // 'full', 'search', 'labels'
+    } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -22,12 +29,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Analyze the repository
-    const analysis = await GitHubService.analyzeRepository(url);
+    const { owner, repo } = parsed;
+
+    let result;
+
+    switch (analysisType) {
+      case 'search':
+        if (!searchQuery) {
+          return NextResponse.json(
+            { error: 'Search query is required for search analysis' },
+            { status: 400 }
+          );
+        }
+        const searchResults = await GitHubService.searchIssues(owner, repo, searchQuery, labels, issueState);
+        const repoInfo = await GitHubService.fetchRepository(owner, repo);
+        result = {
+          repo: repoInfo,
+          issues: searchResults,
+          searchQuery,
+          labels: await GitHubService.getRepositoryLabels(owner, repo)
+        };
+        break;
+
+      case 'labels':
+        const labelResults = await GitHubService.findIssuesByLabels(owner, repo, labels, excludeLabels, issueState);
+        const repoInfoLabels = await GitHubService.fetchRepository(owner, repo);
+        result = {
+          repo: repoInfoLabels,
+          issues: labelResults,
+          filters: { labels, excludeLabels },
+          availableLabels: await GitHubService.getRepositoryLabels(owner, repo)
+        };
+        break;
+
+      default:
+        // Full analysis
+        result = await GitHubService.analyzeRepository(url);
+        result.availableLabels = await GitHubService.getRepositoryLabels(owner, repo);
+        break;
+    }
 
     return NextResponse.json({
       success: true,
-      data: analysis,
+      data: result,
+      analysisType
     });
 
   } catch (error: any) {

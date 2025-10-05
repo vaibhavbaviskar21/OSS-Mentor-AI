@@ -49,6 +49,9 @@ export interface GitHubIssue {
   };
   assignee: any;
   assignees: any[];
+  difficulty?: 'easy' | 'medium' | 'hard';
+  estimated_time?: string;
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface RepositoryContent {
@@ -72,6 +75,12 @@ export interface RepositoryAnalysis {
     packageManager: string | null;
     framework: string | null;
     setupInstructions: string[];
+  };
+  availableLabels?: Array<{name: string; color: string; description: string | null}>;
+  searchQuery?: string;
+  filters?: {
+    labels: string[];
+    excludeLabels: string[];
   };
 }
 
@@ -135,22 +144,191 @@ export class GitHubService {
   }
 
   /**
-   * Find good first issues
+   * Find issues by label filters
+   */
+  static async findIssuesByLabels(
+    owner: string, 
+    repo: string, 
+    labels: string[] = [], 
+    excludeLabels: string[] = [],
+    state: 'open' | 'closed' | 'all' = 'open'
+  ): Promise<GitHubIssue[]> {
+    try {
+      const issues = await this.fetchIssues(owner, repo, state);
+      
+      return issues.filter(issue => {
+        const issueLabels = issue.labels.map(label => label.name.toLowerCase());
+        
+        // Check if issue has all required labels
+        const hasRequiredLabels = labels.length === 0 || 
+          labels.every(label => issueLabels.includes(label.toLowerCase()));
+        
+        // Check if issue doesn't have excluded labels
+        const hasExcludedLabels = excludeLabels.some(label => 
+          issueLabels.includes(label.toLowerCase())
+        );
+        
+        return hasRequiredLabels && !hasExcludedLabels;
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to find issues by labels: ${error.message}`);
+    }
+  }
+
+  /**
+   * Find good first issues with enhanced categorization
    */
   static async findGoodFirstIssues(owner: string, repo: string): Promise<GitHubIssue[]> {
     try {
       const issues = await this.fetchIssues(owner, repo, 'open');
       
-      return issues.filter(issue => 
+      const goodFirstIssues = issues.filter(issue => 
         issue.labels.some(label => 
           ['good first issue', 'beginner', 'help wanted', 'first-timers-only', 'easy']
             .includes(label.name.toLowerCase())
         ) && 
         issue.assignees.length === 0 // Not assigned to anyone
       );
+
+      // Enhance issues with difficulty and priority estimation
+      return goodFirstIssues.map(issue => ({
+        ...issue,
+        difficulty: this.estimateDifficulty(issue),
+        estimated_time: this.estimateTime(issue),
+        priority: this.estimatePriority(issue)
+      }));
     } catch (error: any) {
       throw new Error(`Failed to find good first issues: ${error.message}`);
     }
+  }
+
+  /**
+   * Search issues by text query
+   */
+  static async searchIssues(
+    owner: string, 
+    repo: string, 
+    query: string,
+    labels: string[] = [],
+    state: 'open' | 'closed' | 'all' = 'open'
+  ): Promise<GitHubIssue[]> {
+    try {
+      // Build search query
+      let searchQuery = `repo:${owner}/${repo} ${query}`;
+      
+      if (state !== 'all') {
+        searchQuery += ` state:${state}`;
+      }
+      
+      if (labels.length > 0) {
+        searchQuery += ` ${labels.map(label => `label:"${label}"`).join(' ')}`;
+      }
+
+      const { data } = await octokit.rest.search.issuesAndPullRequests({
+        q: searchQuery,
+        sort: 'updated',
+        order: 'desc',
+        per_page: 50,
+      });
+
+      // Filter out pull requests and enhance issues
+      const issues = data.items.filter(item => !item.pull_request) as GitHubIssue[];
+      
+      return issues.map(issue => ({
+        ...issue,
+        difficulty: this.estimateDifficulty(issue),
+        estimated_time: this.estimateTime(issue),
+        priority: this.estimatePriority(issue)
+      }));
+    } catch (error: any) {
+      throw new Error(`Failed to search issues: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get repository labels
+   */
+  static async getRepositoryLabels(owner: string, repo: string): Promise<Array<{name: string; color: string; description: string | null}>> {
+    try {
+      const { data } = await octokit.rest.issues.listLabelsForRepo({
+        owner,
+        repo,
+        per_page: 100,
+      });
+      
+      return data.map(label => ({
+        name: label.name,
+        color: label.color,
+        description: label.description
+      }));
+    } catch (error: any) {
+      throw new Error(`Failed to fetch repository labels: ${error.message}`);
+    }
+  }
+
+  /**
+   * Estimate issue difficulty based on labels and content
+   */
+  private static estimateDifficulty(issue: GitHubIssue): 'easy' | 'medium' | 'hard' {
+    const labels = issue.labels.map(l => l.name.toLowerCase());
+    
+    // Easy indicators
+    if (labels.some(l => ['good first issue', 'beginner', 'easy', 'documentation', 'typo'].includes(l))) {
+      return 'easy';
+    }
+    
+    // Hard indicators
+    if (labels.some(l => ['complex', 'hard', 'refactor', 'architecture', 'breaking'].includes(l))) {
+      return 'hard';
+    }
+    
+    // Medium by default
+    return 'medium';
+  }
+
+  /**
+   * Estimate time to complete based on difficulty and issue type
+   */
+  private static estimateTime(issue: GitHubIssue): string {
+    const difficulty = this.estimateDifficulty(issue);
+    const labels = issue.labels.map(l => l.name.toLowerCase());
+    
+    if (labels.some(l => ['documentation', 'typo'].includes(l))) {
+      return '< 1 hour';
+    }
+    
+    switch (difficulty) {
+      case 'easy':
+        return '1-3 hours';
+      case 'medium':
+        return '3-8 hours';
+      case 'hard':
+        return '1-3 days';
+      default:
+        return '2-4 hours';
+    }
+  }
+
+  /**
+   * Estimate priority based on labels and age
+   */
+  private static estimatePriority(issue: GitHubIssue): 'low' | 'medium' | 'high' {
+    const labels = issue.labels.map(l => l.name.toLowerCase());
+    const daysSinceCreation = Math.floor(
+      (Date.now() - new Date(issue.created_at).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    // High priority indicators
+    if (labels.some(l => ['bug', 'critical', 'security', 'urgent'].includes(l))) {
+      return 'high';
+    }
+    
+    // Low priority indicators
+    if (labels.some(l => ['enhancement', 'feature', 'nice-to-have'].includes(l)) && daysSinceCreation < 30) {
+      return 'low';
+    }
+    
+    return 'medium';
   }
 
   /**
