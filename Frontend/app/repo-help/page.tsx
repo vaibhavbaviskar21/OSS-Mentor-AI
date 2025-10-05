@@ -26,62 +26,69 @@ export default function RepoHelpPage() {
   const [repoUrl, setRepoUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [repoData, setRepoData] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const analyzeRepo = async () => {
     if (!repoUrl) return
 
     setLoading(true)
+    setError(null)
+    setRepoData(null)
 
-    // Simulate API call - in production, this would call GitHub API
-    setTimeout(() => {
-      setRepoData({
-        name: "awesome-project",
-        fullName: "username/awesome-project",
-        description: "An awesome open source project for learning and contributing",
-        stars: 1234,
-        forks: 456,
-        openIssues: 23,
-        language: "TypeScript",
-        lastUpdated: "2 days ago",
-        license: "MIT",
-        topics: ["react", "typescript", "open-source", "beginner-friendly"],
-        goodFirstIssues: [
-          {
-            title: "Add dark mode toggle",
-            number: 42,
-            labels: ["good first issue", "enhancement"],
-            comments: 3,
-          },
-          {
-            title: "Fix typo in README",
-            number: 38,
-            labels: ["good first issue", "documentation"],
-            comments: 1,
-          },
-          {
-            title: "Update dependencies",
-            number: 35,
-            labels: ["good first issue", "maintenance"],
-            comments: 5,
-          },
-        ],
-        fileStructure: [
-          { name: "src/", type: "folder", children: ["components/", "utils/", "pages/"] },
-          { name: "docs/", type: "folder", children: ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md"] },
-          { name: "README.md", type: "file" },
-          { name: "package.json", type: "file" },
-        ],
-        contributionSteps: [
-          "Fork the repository to your GitHub account",
-          "Clone your fork locally: git clone https://github.com/YOUR-USERNAME/awesome-project.git",
-          "Create a new branch: git checkout -b feature/your-feature",
-          "Make your changes and commit: git commit -m 'Add: your feature'",
-          "Push to your fork: git push origin feature/your-feature",
-          "Open a Pull Request on the original repository",
-        ],
+    try {
+      const response = await fetch('/api/analyze-repo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: repoUrl }),
       })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to analyze repository')
+      }
+
+      const analysis = result.data
+
+      // Transform the data to match the UI format
+      setRepoData({
+        name: analysis.repo.name,
+        fullName: analysis.repo.full_name,
+        description: analysis.repo.description || "No description provided",
+        stars: analysis.repo.stargazers_count,
+        forks: analysis.repo.forks_count,
+        openIssues: analysis.repo.open_issues_count,
+        language: analysis.repo.language || "Not specified",
+        lastUpdated: new Date(analysis.repo.updated_at).toLocaleDateString(),
+        license: analysis.repo.license?.name || "No license",
+        topics: analysis.repo.topics || [],
+        goodFirstIssues: analysis.goodFirstIssues.map((issue: any) => ({
+          title: issue.title,
+          number: issue.number,
+          labels: issue.labels.map((label: any) => label.name),
+          comments: issue.comments,
+          url: issue.html_url,
+        })),
+        fileStructure: analysis.fileStructure.map((item: any) => ({
+          name: item.name,
+          type: item.type === 'dir' ? 'folder' : 'file',
+          path: item.path,
+        })),
+        contributionSteps: analysis.contributionGuide,
+        technicalDetails: analysis.technicalDetails,
+        hasReadme: !!analysis.readme,
+        hasContributing: !!analysis.contributing,
+        hasCodeOfConduct: !!analysis.codeOfConduct,
+        repoUrl: analysis.repo.html_url,
+      })
+    } catch (error: any) {
+      console.error('Failed to analyze repository:', error)
+      setError(error.message || 'Failed to analyze repository')
+    } finally {
       setLoading(false)
-    }, 2000)
+    }
   }
 
   return (
@@ -168,6 +175,49 @@ export default function RepoHelpPage() {
           </Card>
         </div>
       </section>
+
+      {/* Loading Section */}
+      {loading && (
+        <section className="py-12 container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <Card className="border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center gap-3 py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="text-center">
+                    <h3 className="font-semibold">Analyzing Repository</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Fetching repository data, issues, and structure...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Error Section */}
+      {error && (
+        <section className="py-12 container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 text-red-700">
+                  <AlertCircle className="h-5 w-5" />
+                  <div>
+                    <h3 className="font-semibold">Analysis Failed</h3>
+                    <p className="text-sm mt-1">{error}</p>
+                    <p className="text-xs mt-2 text-red-600">
+                      Make sure the repository URL is correct and the repository is public.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* Results Section */}
       {repoData && (
@@ -266,14 +316,26 @@ export default function RepoHelpPage() {
                         className="p-4 rounded-lg border border-border hover:border-primary/50 transition-smooth"
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-semibold">
-                            #{issue.number} {issue.title}
-                          </h4>
+                          <div>
+                            <h4 className="font-semibold">
+                              #{issue.number} {issue.title}
+                            </h4>
+                            {issue.url && (
+                              <a
+                                href={issue.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline mt-1 inline-flex items-center gap-1"
+                              >
+                                View on GitHub <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
                           <Badge variant="outline" className="text-xs">
                             {issue.comments} comments
                           </Badge>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           {issue.labels.map((label: string, i: number) => (
                             <Badge key={i} variant="secondary" className="text-xs">
                               {label}
@@ -302,46 +364,68 @@ export default function RepoHelpPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 font-mono text-sm">
-                      {repoData.fileStructure.map((item: any, index: number) => (
-                        <div key={index} className="space-y-1">
-                          <div className="flex items-center gap-2 p-2 rounded hover:bg-muted transition-smooth">
-                            {item.type === "folder" ? (
-                              <FolderTree className="h-4 w-4 text-primary" />
-                            ) : (
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            )}
-                            <span className={item.type === "folder" ? "text-primary font-semibold" : ""}>
-                              {item.name}
+                      {repoData.fileStructure.slice(0, 20).map((item: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-2 rounded hover:bg-muted transition-smooth">
+                          {item.type === "folder" ? (
+                            <FolderTree className="h-4 w-4 text-primary" />
+                          ) : (
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className={item.type === "folder" ? "text-primary font-semibold" : ""}>
+                            {item.name}
+                          </span>
+                          {item.path && item.path !== item.name && (
+                            <span className="text-xs text-muted-foreground">
+                              ({item.path})
                             </span>
-                          </div>
-                          {item.children && (
-                            <div className="ml-6 space-y-1">
-                              {item.children.map((child: string, i: number) => (
-                                <div
-                                  key={i}
-                                  className="flex items-center gap-2 p-2 rounded hover:bg-muted transition-smooth text-muted-foreground"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                  <span>{child}</span>
-                                </div>
-                              ))}
-                            </div>
                           )}
                         </div>
                       ))}
+                      {repoData.fileStructure.length > 20 && (
+                        <div className="text-center py-2 text-muted-foreground text-sm">
+                          ... and {repoData.fileStructure.length - 20} more files
+                        </div>
+                      )}
                     </div>
 
-                    <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                      <h4 className="font-semibold text-primary mb-2 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Key Files to Review
-                      </h4>
-                      <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                        <li>• README.md - Project overview and setup instructions</li>
-                        <li>• CONTRIBUTING.md - Contribution guidelines</li>
-                        <li>• CODE_OF_CONDUCT.md - Community standards</li>
-                        <li>• package.json - Dependencies and scripts</li>
-                      </ul>
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                        <h4 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Key Files Found
+                        </h4>
+                        <ul className="text-sm text-muted-foreground space-y-1 ml-6">
+                          <li className={repoData.hasReadme ? "text-green-600" : "text-orange-600"}>
+                            • README.md {repoData.hasReadme ? "✓" : "✗"}
+                          </li>
+                          <li className={repoData.hasContributing ? "text-green-600" : "text-orange-600"}>
+                            • CONTRIBUTING.md {repoData.hasContributing ? "✓" : "✗"}
+                          </li>
+                          <li className={repoData.hasCodeOfConduct ? "text-green-600" : "text-orange-600"}>
+                            • CODE_OF_CONDUCT.md {repoData.hasCodeOfConduct ? "✓" : "✗"}
+                          </li>
+                        </ul>
+                      </div>
+
+                      {repoData.technicalDetails && (
+                        <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
+                          <h4 className="font-semibold text-accent mb-2 flex items-center gap-2">
+                            <Code className="h-4 w-4" />
+                            Technical Details
+                          </h4>
+                          <ul className="text-sm text-muted-foreground space-y-1 ml-6">
+                            {repoData.technicalDetails.packageManager && (
+                              <li>• Package Manager: {repoData.technicalDetails.packageManager}</li>
+                            )}
+                            {repoData.technicalDetails.framework && (
+                              <li>• Framework: {repoData.technicalDetails.framework}</li>
+                            )}
+                            {repoData.technicalDetails.setupInstructions?.length > 0 && (
+                              <li>• Special setup required</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
