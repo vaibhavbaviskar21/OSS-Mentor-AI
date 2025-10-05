@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   images: {
-    unoptimized: true,
+    domains: ['localhost'],
+    formats: ['image/webp', 'image/avif'],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
 }
 

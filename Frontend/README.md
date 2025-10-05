@@ -1,30 +1,56 @@
-# Open source contribution hub
+# OpenMentor AI - Open Source Contribution Hub
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+An AI-powered platform designed to help developers navigate the open source ecosystem with personalized guidance and mentorship.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/vaibhavbaviskar21-9912s-projects/v0-open-source-contribution-hub)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/x2O4gaAfcIp)
+## 🚀 Features
 
-## Overview
+- **AI Chatbot**: Get instant help and guidance for your open source journey
+- **Git & GitHub Tutorials**: Learn version control and collaboration best practices
+- **Open Source Guidance**: Discover projects and learn contribution workflows
+- **Platform Integration**: Connect with various development platforms
+- **Repository Help**: Get assistance with specific repository management
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## 🛠️ Tech Stack
 
-## Deployment
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS, Radix UI Components
+- **Development**: Modern tooling with hot reload support
 
-Your project is live at:
+## 🏃‍♂️ Getting Started
 
-**[https://vercel.com/vaibhavbaviskar21-9912s-projects/v0-open-source-contribution-hub](https://vercel.com/vaibhavbaviskar21-9912s-projects/v0-open-source-contribution-hub)**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/vaibhavbaviskar21/OSS-Mentor-AI.git
+   cd OSS-Mentor-AI/Frontend
+   ```
 
-## Build your app
+2. Install dependencies:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-Continue building your app on:
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-**[https://v0.app/chat/projects/x2O4gaAfcIp](https://v0.app/chat/projects/x2O4gaAfcIp)**
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## How It Works
+## 📁 Project Structure
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+```
+Frontend/
+├── app/                 # Next.js app directory
+├── components/          # Reusable React components
+├── lib/                # Utility functions
+├── public/             # Static assets
+└── styles/             # Global styles
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is open source and available under the MIT License.
