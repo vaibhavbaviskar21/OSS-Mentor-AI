@@ -1,4 +1,4 @@
-# OpenMentor AI - Open Source Contribution Hub
+# OSS Mentor AI - Open Source Contribution Hub
 
 An AI-powered platform designed to help developers navigate the open source ecosystem with personalized guidance and mentorship.
 

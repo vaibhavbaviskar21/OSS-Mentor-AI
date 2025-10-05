@@ -1,4 +1,4 @@
-# RepoHelp Feature Documentation
+# RepoHelp Feature Documentation - OSS Mentor AI
 
 ## Overview
 

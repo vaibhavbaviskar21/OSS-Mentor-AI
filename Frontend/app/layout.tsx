@@ -17,10 +17,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "OpenSource Hub - Your Gateway to Open Source Contribution",
+  title: "OSS Mentor AI - Your Gateway to Open Source Contribution",
   description:
     "Learn, explore, and contribute to open source projects with interactive guides, AI assistance, and powerful tools.",
-    generator: 'v0.app'
+    generator: 'OSS Mentor AI'
 }
 
 export default function RootLayout({
