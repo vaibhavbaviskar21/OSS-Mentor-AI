@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun, Menu, X } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -18,20 +19,18 @@ const navItems = [
 
 export function Navigation() {
   const pathname = usePathname()
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const { theme, setTheme, systemTheme } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const root = document.documentElement
-    if (theme === "dark") {
-      root.classList.remove("light")
-    } else {
-      root.classList.add("light")
-    }
+    // The `ThemeProvider` uses the `class` attribute; next-themes will add `class="light"` or `class="dark"`.
+    // This effect keeps the UI in sync if theme is undefined (SSR hydration).
+    if (!theme) return
   }, [theme])
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
+    const current = theme === "system" ? systemTheme : theme
+    setTheme(current === "dark" ? "light" : "dark")
   }
 
   return (
@@ -75,13 +74,14 @@ export function Navigation() {
 
           {/* Enhanced Right side actions */}
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleTheme} 
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
               className="transition-bounce hover:scale-110 hover:bg-primary/10 rounded-full"
+              aria-label="Toggle theme"
             >
-              {theme === "dark" ? (
+              {theme === "dark" || (theme === "system" && systemTheme === "dark") ? (
                 <Sun className="h-5 w-5 text-amber-500" />
               ) : (
                 <Moon className="h-5 w-5 text-blue-500" />
