@@ -34,16 +34,16 @@ export function Navigation() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 glass-morphism">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 backdrop-blur-md bg-background/60 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           {/* Enhanced Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center font-mono font-bold text-primary-foreground transition-bounce group-hover:scale-110 group-hover:rotate-3 neon-glow">
               <span className="text-sm">OSS</span>
             </div>
             <div className="hidden sm:block">
-              <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="font-bold text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 OSS Mentor AI
               </span>
               <div className="text-xs text-muted-foreground -mt-1">Your Open Source Journey</div>
@@ -51,21 +51,21 @@ export function Navigation() {
           </Link>
 
           {/* Enhanced Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2 bg-muted/30 rounded-full p-1">
+            <div className="hidden md:flex items-center gap-2 bg-muted/20 rounded-full p-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-bounce relative group",
-                  pathname === item.href 
-                    ? "bg-primary text-primary-foreground shadow-lg" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                )}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm font-medium transition-all relative group",
+                    pathname === item.href
+                      ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-[0_6px_30px_rgba(2,6,23,0.35)]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+                  )}
               >
                 {item.name}
                 {pathname === item.href && (
-                  <div className="absolute inset-0 rounded-full bg-primary neon-glow opacity-50" />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/30 to-accent/30 neon-glow opacity-60" />
                 )}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 transition-smooth" />
               </Link>

@@ -29,9 +29,10 @@ export function Footer() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               AI-powered guidance for open source contribution and mentorship. Join millions of developers building the future.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-xs text-muted-foreground">Active Community</span>
+              <Button className="ml-4 btn-gradient px-3 py-1 text-xs">Join Community</Button>
             </div>
           </div>
 
@@ -102,7 +103,7 @@ export function Footer() {
                   placeholder="your@email.com" 
                   className="bg-background/50 border-border/50 focus:border-primary transition-colors" 
                 />
-                <Button size="sm" className="neon-glow px-3">
+                <Button size="sm" className="neon-glow px-3 btn-gradient">
                   <Mail className="h-4 w-4" />
                 </Button>
               </div>
