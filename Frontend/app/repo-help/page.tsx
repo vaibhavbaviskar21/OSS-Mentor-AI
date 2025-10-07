@@ -49,6 +49,9 @@ export default function RepoHelpPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [availableLabels, setAvailableLabels] = useState<Array<{name: string; color: string; description: string | null}>>([])
   const [filteredIssues, setFilteredIssues] = useState<any[]>([])
+  const [visibleCount, setVisibleCount] = useState<number>(10)
+  const [onlyUnassigned, setOnlyUnassigned] = useState<boolean>(false)
+  const [selectedIssue, setSelectedIssue] = useState<any | null>(null)
   const [sortBy, setSortBy] = useState<'updated' | 'created' | 'comments' | 'difficulty'>('updated')
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all')
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all')
@@ -107,6 +110,8 @@ export default function RepoHelpPage() {
 
   const filterIssues = (issues: any[]) => {
     return issues.filter(issue => {
+      // only show unassigned issues if toggled
+      if (onlyUnassigned && issue.assignees && issue.assignees.length > 0) return false
       // Difficulty filter
       if (difficultyFilter !== 'all' && issue.difficulty !== difficultyFilter) {
         return false
@@ -128,6 +133,14 @@ export default function RepoHelpPage() {
       setFilteredIssues(sorted)
     }
   }, [repoData, sortBy, difficultyFilter, priorityFilter])
+
+  useEffect(() => {
+    if (repoData?.goodFirstIssues) {
+      const filtered = filterIssues(repoData.goodFirstIssues)
+      const sorted = sortIssues(filtered)
+      setFilteredIssues(sorted)
+    }
+  }, [onlyUnassigned])
 
   const performAdvancedSearch = async () => {
     if (!repoUrl) return
@@ -562,6 +575,53 @@ export default function RepoHelpPage() {
         </section>
       )}
 
+      {/* Issue Details Modal */}
+      {selectedIssue && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedIssue(null)} />
+          <div className="relative max-w-2xl w-full mx-4 bg-card rounded-xl border p-6 z-10">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">#{selectedIssue.number} {selectedIssue.title}</h3>
+                <div className="text-sm text-muted-foreground">by {selectedIssue.user?.login || 'Unknown'}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" onClick={() => setSelectedIssue(null)}>Close</Button>
+                <Button asChild>
+                  <a href={selectedIssue.html_url || selectedIssue.url} target="_blank" rel="noreferrer">Open on GitHub</a>
+                </Button>
+              </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground mb-4 line-clamp-6">
+              {selectedIssue.body || 'No description available.'}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(selectedIssue.labels || []).map((label: any, i: number) => (
+                <Badge key={i} variant="outline" style={{ borderColor: label?.color ? `#${label.color}` : undefined, color: label?.color ? `#${label.color}` : undefined }}>
+                  {typeof label === 'string' ? label : label?.name}
+                </Badge>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button onClick={async () => {
+                const template = `### Issue: ${selectedIssue.title}\n\n${selectedIssue.body || ''}\n\n---\n*I would like to work on this issue*`;
+                try { await navigator.clipboard.writeText(template); } catch (e) { console.error(e) }
+              }}>Copy Template</Button>
+              <Button variant="outline" onClick={() => {
+                // add the label filter for quick exploration
+                const labels = (selectedIssue.labels || []).map((l: any) => typeof l === 'string' ? l : l.name)
+                setSelectedLabels(labels)
+                setShowFilters(true)
+                setSelectedIssue(null)
+              }}>Filter by Labels</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error Section */}
       {error && (
         <section className="py-12 container mx-auto px-4">
@@ -716,7 +776,7 @@ export default function RepoHelpPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {filteredIssues.map((issue: any, index: number) => (
+                    {filteredIssues.slice(0, visibleCount).map((issue: any, index: number) => (
                       <div
                         key={index}
                         className="p-4 rounded-lg border border-border hover:border-primary/50 transition-smooth bg-card"
@@ -781,22 +841,27 @@ export default function RepoHelpPage() {
                               </p>
                             )}
 
-                            {/* Labels */}
+                            {/* Labels (click to add as filter) */}
                             <div className="flex gap-2 flex-wrap mb-3">
-                              {(issue.labels || []).slice(0, 5).map((label: any, i: number) => (
-                                <Badge 
-                                  key={i} 
-                                  variant="outline" 
-                                  className="text-xs"
-                                  style={{ 
-                                    borderColor: label?.color ? `#${label.color}` : undefined,
-                                    color: label?.color ? `#${label.color}` : undefined
-                                  }}
-                                >
-                                  <Tag className="h-3 w-3 mr-1" />
-                                  {typeof label === 'string' ? label : label?.name || 'Unknown'}
-                                </Badge>
-                              ))}
+                              {(issue.labels || []).slice(0, 5).map((label: any, i: number) => {
+                                const name = typeof label === 'string' ? label : label?.name || 'Unknown'
+                                return (
+                                  <Badge
+                                    key={i}
+                                    variant="outline"
+                                    className="text-xs cursor-pointer hover:scale-105 transition-transform"
+                                    style={{
+                                      borderColor: label?.color ? `#${label.color}` : undefined,
+                                      color: label?.color ? `#${label.color}` : undefined,
+                                    }}
+                                    onClick={() => addLabel(name)}
+                                    title={`Filter by ${name}`}
+                                  >
+                                    <Tag className="h-3 w-3 mr-1" />
+                                    {name}
+                                  </Badge>
+                                )
+                              })}
                               {(issue.labels || []).length > 5 && (
                                 <Badge variant="outline" className="text-xs">
                                   +{(issue.labels || []).length - 5} more
@@ -817,7 +882,22 @@ export default function RepoHelpPage() {
                                   View Issue
                                 </a>
                               </Button>
-                              
+
+                              <Button size="sm" variant="outline" onClick={() => setSelectedIssue(issue)}>
+                                Details
+                              </Button>
+
+                              <Button size="sm" variant="ghost" onClick={async () => {
+                                const template = `### Issue: ${issue.title}\n\n${issue.body || ''}\n\n---\n*I would like to work on this issue*`;
+                                try {
+                                  await navigator.clipboard.writeText(template)
+                                } catch (e) {
+                                  console.error('Clipboard write failed', e)
+                                }
+                              }} title="Copy issue template">
+                                Copy Template
+                              </Button>
+
                               {(!issue.assignees || issue.assignees.length === 0) && (
                                 <Badge variant="default" className="text-xs bg-green-100 text-green-800">
                                   <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -829,6 +909,15 @@ export default function RepoHelpPage() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Load more */}
+                    {filteredIssues.length > visibleCount && (
+                      <div className="flex justify-center pt-4">
+                        <Button onClick={() => setVisibleCount(c => c + 10)} className="neon-glow">
+                          Load more
+                        </Button>
+                      </div>
+                    )}
 
                     {filteredIssues.length === 0 && (
                       <div className="text-center py-12 text-muted-foreground">
