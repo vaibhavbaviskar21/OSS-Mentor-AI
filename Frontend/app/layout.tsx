@@ -5,6 +5,7 @@ import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ChatBotWidget } from "@/components/chatbot-widget"
+import ParticleBackground from "@/components/particle-bg"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* Particle background sits behind main UI */}
+        <ParticleBackground />
         <Navigation />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-screen pt-16 relative z-10">{children}</main>
         <Footer />
         <ChatBotWidget />
       </body>
